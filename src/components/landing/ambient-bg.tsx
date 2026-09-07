@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useFinePointer, usePrefersReducedMotion, useIsMobile } from "./hooks";
+import { useFinePointer, usePrefersReducedMotion, useIsMobile } from "@/lib/hooks";
 
 type Particle = {
   x: number;

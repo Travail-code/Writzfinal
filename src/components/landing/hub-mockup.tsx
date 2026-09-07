@@ -1,7 +1,10 @@
+"use client";
+
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Play, Search } from "lucide-react";
+import { GAMES } from "@/lib/games";
 import { HUB_VERSION } from "@/lib/hub-meta";
-import { useFinePointer, usePrefersReducedMotion, useIsMobile } from "./hooks";
+import { useRichMotion } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 
 const SCRIPTS = [
@@ -13,20 +16,20 @@ const SCRIPTS = [
   { name: "Anti AFK", tag: "Utility", hot: false },
 ];
 
-const NAV = ["Home", "Universal", "Blox Fruits", "Pet Sim", "Da Hood"];
+// Dérivé de la vraie liste de jeux : ajouter un jeu dans games.ts met
+// désormais la maquette à jour toute seule.
+const NAV = ["Home", "Universal", ...GAMES.slice(0, 3).map((game) => game.name)];
 
 export function HubMockup() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  const fine = useFinePointer();
-  const reduced = usePrefersReducedMotion();
-  const isMobile = useIsMobile();
+  const richMotion = useRichMotion();
   const [activeNav, setActiveNav] = useState("Universal");
   const [running, setRunning] = useState("Auto Farm");
 
   useEffect(() => {
     const wrap = wrapRef.current;
-    if (!wrap || reduced || isMobile) return;
+    if (!wrap || !richMotion) return;
 
     const onScroll = () => {
       const rect = wrap.getBoundingClientRect();
@@ -37,11 +40,11 @@ export function HubMockup() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [reduced, isMobile]);
+  }, [richMotion]);
 
   const onMove = (e: MouseEvent<HTMLDivElement>) => {
     const inner = innerRef.current;
-    if (!inner || !fine || reduced || isMobile) return;
+    if (!inner || !richMotion) return;
     const r = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - r.left) / r.width - 0.5;
     const y = (e.clientY - r.top) / r.height - 0.5;
@@ -57,6 +60,8 @@ export function HubMockup() {
   return (
     <div
       ref={wrapRef}
+      role="group"
+      aria-label="Interactive preview of the Writz Hub panel (demo only)"
       className="tilt-target mx-auto max-w-4xl"
       style={{ perspective: "1200px" }}
       onMouseMove={onMove}

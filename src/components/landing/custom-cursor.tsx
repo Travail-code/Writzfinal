@@ -1,15 +1,15 @@
+"use client";
+
 import { useEffect, useRef } from "react";
-import { useFinePointer, usePrefersReducedMotion, useIsMobile } from "./hooks";
+import { useRichMotion } from "@/lib/hooks";
 
 export function CustomCursor() {
-  const fine = useFinePointer();
-  const reduced = usePrefersReducedMotion();
-  const isMobile = useIsMobile();
+  const richMotion = useRichMotion();
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!fine || reduced || isMobile) {
+    if (!richMotion) {
       document.documentElement.classList.remove("has-custom-cursor");
       return;
     }
@@ -20,6 +20,7 @@ export function CustomCursor() {
     const ring = { x: pos.x, y: pos.y };
     let hovering = false;
     let raf = 0;
+    let running = true;
 
     const onMove = (e: PointerEvent) => {
       pos.x = e.clientX;
@@ -33,6 +34,7 @@ export function CustomCursor() {
     };
 
     const tick = () => {
+      if (!running) return;
       ring.x += (pos.x - ring.x) * 0.18;
       ring.y += (pos.y - ring.y) * 0.18;
       if (dotRef.current) {
@@ -45,17 +47,28 @@ export function CustomCursor() {
       raf = requestAnimationFrame(tick);
     };
 
+    // La boucle tournait même onglet en arrière-plan : pure consommation
+    // de batterie pour rien.
+    const onVisibility = () => {
+      running = !document.hidden;
+      if (running) raf = requestAnimationFrame(tick);
+      else cancelAnimationFrame(raf);
+    };
+
     window.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("visibilitychange", onVisibility);
     raf = requestAnimationFrame(tick);
 
     return () => {
+      running = false;
       window.removeEventListener("pointermove", onMove);
+      document.removeEventListener("visibilitychange", onVisibility);
       cancelAnimationFrame(raf);
       document.documentElement.classList.remove("has-custom-cursor");
     };
-  }, [fine, reduced, isMobile]);
+  }, [richMotion]);
 
-  if (!fine || reduced || isMobile) return null;
+  if (!richMotion) return null;
 
   return (
     <>

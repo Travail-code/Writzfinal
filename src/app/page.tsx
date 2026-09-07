@@ -1,10 +1,9 @@
 import { LandingPage } from "@/components/landing/landing-page";
-import { getCount } from "@/lib/copy-store";
 
-// Rendered on every request so the live copy counter is always up to date
-// and visible immediately (no client-side fetch needed for first paint).
-export const dynamic = "force-dynamic";
-
+// La page est entièrement statique : plus de `force-dynamic`.
+// Elle était dynamique uniquement pour rendre le compteur de copies côté
+// serveur — compteur supprimé, donc la home est désormais mise en cache
+// par le CDN (TTFB quasi nul).
 export default function Home() {
-  return <LandingPage initialCopies={getCount()} />;
+  return <LandingPage />;
 }

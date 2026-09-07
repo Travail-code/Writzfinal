@@ -32,7 +32,7 @@ export function OtherGames({ games }: { games: Game[] }) {
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {shown.map((game, index) => (
-          <GameCard key={game.slug} game={game} index={index} compact />
+          <GameCard key={game.slug} game={game} index={index} compact headingLevel="h3" />
         ))}
       </div>
     </section>

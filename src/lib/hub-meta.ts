@@ -49,9 +49,9 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: "2026-09-02",
     tag: "latest",
     changes: [
-      "Add a website",
-      "Add 10 games",
-      "Add security",
+      "Brand new website",
+      "10 new games supported",
+      "Hardened security headers",
     ],
   },
   {
@@ -61,14 +61,14 @@ export const CHANGELOG: ChangelogEntry[] = [
     changes: [
       "Keyless loader",
       "Auto-update pipeline",
-      "Every exec suport",
+      "Support for every major executor",
     ],
   },
   {
     version: "1.0",
     date: "2026-08-01",
     changes: [
-      "Post BETA script",
+      "First public beta release",
       "Basic UI panel",
     ],
   },

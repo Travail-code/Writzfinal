@@ -9,31 +9,31 @@ const FEATURES: {
 }[] = [
   {
     title: "Keyless",
-    body: "Keyless bug only for the hub after you can found game have key system but not all.",
+    body: "The hub itself needs no key. A few individual games still ship their own key system — those are clearly marked.",
     icon: Shield,
   },
   {
     title: "Instant",
-    body: "Fast hub, 0 lag, we update that",
+    body: "Loads in seconds with no lag, and we keep optimising it release after release.",
     icon: Zap,
   },
   {
     title: "Universal",
-    body: "We use our library system work on every game",
+    body: "Built on our own UI library, so the same hub runs on every supported game.",
     icon: Layers,
   },
   {
     title: "Auto-update",
-    body: "We update when we found a bug, add a game or add security",
+    body: "Every bug fix, new game and security patch reaches you without changing your loadstring.",
     icon: RefreshCw,
   },
   {
-    title: "Tuff UI",
-    body: "Dark panel, classic theme, Small UI and rly cool",
+    title: "Clean UI",
+    body: "A compact dark panel: readable, unobtrusive, and quick to navigate mid-game.",
     icon: Terminal,
   },
   {
-    title: "Every exec",
+    title: "Every executor",
     body: "Xeno, Solara, Delta, Wave, Swift, Codex. One loadstring, every runtime.",
     icon: Gauge,
   },

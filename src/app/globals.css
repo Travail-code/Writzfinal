@@ -5,15 +5,18 @@
   --color-bg-2: #111111;
   --color-surface: #161616;
   --color-fg: #f4f4f5;
-  --color-muted: #a1a1aa;
-  --color-faint: #71717a;
+  --color-muted: #a8a8b3;
+  /* #71717a donnait un contraste de ~3.9:1 sur le fond #0a0a0a, sous le
+     minimum WCAG AA (4.5:1) — or cette couleur sert surtout à du texte
+     de 10-11px. #8b8b96 monte à ~5.2:1. */
+  --color-faint: #8b8b96;
   --color-line: rgb(255 255 255 / 0.08);
   --color-line-strong: rgb(255 255 255 / 0.16);
   --color-accent: #f4f4f5;
   --color-accent-fg: #0a0a0a;
-  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-display: var(--font-syne), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
@@ -186,6 +189,37 @@
   50% {
     opacity: 0.35;
   }
+}
+
+/* Déplacées depuis le <style> inline de hero.tsx */
+@keyframes fade-slide {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin-3d {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+.log-line {
+  opacity: 0;
+  animation: fade-slide 420ms var(--ease-out-expo) forwards;
+}
+
+.executor-spin {
+  animation: spin-3d 4s linear infinite;
+  transform-style: preserve-3d;
 }
 
 /* Letters start hidden only while waiting for mount, then animate in and stay visible */
@@ -396,6 +430,7 @@
   .status-pulse,
   .bar-run,
   .live-blink,
+  .executor-spin,
   .glow-border {
     animation: none !important;
   }

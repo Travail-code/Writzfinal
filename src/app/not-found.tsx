@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GlowButton } from "@/components/landing/glow-button";
 
 export const metadata: Metadata = {
-  title: "404 · Writz Hub",
+  title: "404 — page not found",
 };
 
 export default function NotFound() {
@@ -11,7 +11,7 @@ export default function NotFound() {
       <div className="noise-overlay" />
       <div
         className="perspective-floor absolute inset-x-[-20%] top-[48%] h-[70vh] opacity-60"
-        aria-hidden
+        aria-hidden="true"
       />
 
       <p className="relative z-10 font-mono text-[11px] uppercase tracking-[0.22em] text-faint">

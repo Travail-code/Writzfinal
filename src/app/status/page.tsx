@@ -8,27 +8,31 @@ import {
   statusLabel,
   type ServiceStatus,
 } from "@/lib/hub-meta";
+import { Wordmark } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Status · Writz Hub",
+  title: "Status",
   description: "Live status for Writz Hub loader, CDN, website and Discord.",
+  alternates: { canonical: "/status" },
 };
+
+// Régénérée toutes les minutes : l'horodatage affiché correspond
+// réellement au dernier rendu, au lieu d'un « Updated just now » figé.
+export const revalidate = 60;
 
 export default function StatusPage() {
   const overall = overallStatus();
   const latest = CHANGELOG[0];
+  const checkedAt = new Date();
 
   return (
     <div className="relative min-h-svh bg-bg text-fg">
       <div className="noise-overlay" />
       <header className="relative z-10 border-b border-line">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4 md:px-8">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="grid size-8 place-items-center rounded-md bg-fg text-[11px] font-semibold text-accent-fg">
-              W
-            </span>
-            <span className="font-display text-[15px] font-semibold tracking-tight">Writz Hub</span>
+          <Link href="/" aria-label="Writz Hub — home">
+            <Wordmark />
           </Link>
           <Link
             href="/"
@@ -61,7 +65,11 @@ export default function StatusPage() {
                     : "Service disruption"}
               </p>
               <p className="mt-0.5 font-mono text-[11px] text-faint">
-                Updated just now · hub v{HUB_VERSION}
+                Checked{" "}
+                <time dateTime={checkedAt.toISOString()}>
+                  {checkedAt.toISOString().replace("T", " ").slice(0, 16)} UTC
+                </time>{" "}
+                · hub v{HUB_VERSION}
               </p>
             </div>
           </div>
@@ -129,7 +137,7 @@ function StatusDot({ status, large }: { status: ServiceStatus; large?: boolean }
         status === "degraded" && "bg-fg/50",
         status === "outage" && "bg-fg/25",
       )}
-      aria-hidden
+      aria-hidden="true"
     />
   );
 }

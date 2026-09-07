@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+"use client";
+
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useInView } from "@/lib/hooks";
 
 export function Reveal({
   children,
@@ -10,31 +13,16 @@ export function Reveal({
   className?: string;
   delay?: number;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setVisible(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.14, rootMargin: "0px 0px -8% 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+  // Observer partagé : un seul IntersectionObserver pour toutes les
+  // instances de Reveal, au lieu d'un par composant.
+  const { ref, inView } = useInView<HTMLDivElement>();
 
   return (
     <div
       ref={ref}
       className={cn(
         "transition-[opacity,transform,filter] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]",
-        visible ? "translate-y-0 opacity-100 blur-0" : "translate-y-6 opacity-0 blur-[4px]",
+        inView ? "translate-y-0 opacity-100 blur-0" : "translate-y-6 opacity-0 blur-[4px]",
         className,
       )}
       style={{ transitionDelay: `${delay}ms` }}
@@ -53,24 +41,8 @@ export function WordReveal({
   className?: string;
   as?: "h1" | "h2" | "h3" | "p";
 }) {
-  const ref = useRef<HTMLElement>(null);
-  const [shown, setShown] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setShown(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.3 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+  const { ref, inView } = useInView<HTMLElement>({ threshold: 0.3, rootMargin: "0px" });
+  const shown = inView;
 
   return (
     <Tag ref={ref as never} className={className}>

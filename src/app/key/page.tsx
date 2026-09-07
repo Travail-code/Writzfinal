@@ -6,7 +6,7 @@ import { LoadstringMini } from "@/components/keys/loadstring-mini";
 import { GAMES } from "@/lib/games";
 
 export const metadata: Metadata = {
-  title: "Keys · Writz Hub",
+  title: "Keys",
   description:
     "Pick your game and get a key for Writz Hub scripts. One key per device, instant delivery, valid 24h.",
   alternates: { canonical: "/key" },

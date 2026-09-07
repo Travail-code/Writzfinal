@@ -5,31 +5,25 @@ import { useRef, type CSSProperties, type MouseEvent } from "react";
 import { ArrowUpRight } from "lucide-react";
 import type { Game } from "@/lib/games";
 import { accentFor, featuresFromTag, initialsFor } from "@/lib/game-style";
-import {
-  useFinePointer,
-  useIsMobile,
-  usePrefersReducedMotion,
-} from "@/components/landing/hooks";
+import { useRichMotion } from "@/lib/hooks";
 
 export function GameCard({
   game,
   index,
   compact = false,
+  headingLevel = "h2",
 }: {
   game: Game;
   index: number;
   compact?: boolean;
+  /** Adapte le niveau de titre au contexte (h2 sur /key, h3 sous « Other games »). */
+  headingLevel?: "h2" | "h3";
 }) {
+  const Heading = headingLevel;
   const ref = useRef<HTMLAnchorElement>(null);
-  const fine = useFinePointer();
-  const reduced = usePrefersReducedMotion();
-  const isMobile = useIsMobile();
+  const tiltEnabled = useRichMotion();
   const accent = accentFor(game.slug);
   const features = featuresFromTag(game.tag);
-
-  // 3D tilt follows the pointer, but only when it actually helps:
-  // fine pointer, motion allowed, desktop viewport.
-  const tiltEnabled = fine && !reduced && !isMobile;
 
   const onMove = (event: MouseEvent<HTMLAnchorElement>) => {
     const el = ref.current;
@@ -84,14 +78,14 @@ export function GameCard({
           </span>
         </div>
 
-        <h2
+        <Heading
           className={
             "font-display relative mt-4 font-semibold leading-tight tracking-tight " +
             (compact ? "text-[14px]" : "text-[15px]")
           }
         >
           {game.name}
-        </h2>
+        </Heading>
 
         <div className="relative mt-2 flex flex-wrap gap-1">
           {features.map((feature) => (
