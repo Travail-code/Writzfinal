@@ -1,78 +1,70 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useMounted, usePrefersReducedMotion } from "@/lib/hooks";
+import { useEffect, useRef, useState } from "react";
 
-const SCRAMBLE_GLYPHS = "@#$%&<>/\\|01█▓▒░";
+const CHARS = "!<>-_\\/[]{}—=+*^?#________";
 
-/** Temps (ms) pendant lequel tout le titre « brouille » avant la résolution. */
-const WARMUP = 340;
-
-/**
- * Titre avec animation « décryptage » : les glyphes aléatoires brouillent
- * d'abord tout le titre, puis se résolvent lettre par lettre, avec un
- * flash lumineux une fois terminé. Le texte final est rendu côté serveur,
- * donc il reste lisible sans JS et pour les crawlers.
- */
-export function ScrambleTitle({
-  text,
-  className,
-  style,
-}: {
+type ScrambleTitleProps = {
   text: string;
   className?: string;
   style?: React.CSSProperties;
-}) {
-  const mounted = useMounted();
-  const reducedMotion = usePrefersReducedMotion();
-  const [frame, setFrame] = useState<string | null>(null);
+};
 
-  const animate = mounted && !reducedMotion;
-  // Valeur dérivée : pas de setState synchrone dans l'effet, et le texte
-  // final est rendu tel quel côté serveur et en mouvement réduit.
-  const shown = animate && frame !== null ? frame : text;
-  const resolved = animate && frame === text;
+export function ScrambleTitle({ text, className, style }: ScrambleTitleProps) {
+  const [display, setDisplay] = useState(text);
+  const frame = useRef(0);
+  const rafId = useRef<number | null>(null);
+  const queue = useRef<
+    { from: string; to: string; start: number; end: number }[]
+  >([]);
 
   useEffect(() => {
-    if (!animate) return;
+    queue.current = text.split("").map((to, i) => {
+      const start = Math.floor(i * 2.2);
+      const end = start + Math.floor(Math.random() * 8) + 6;
+      return { from: "", to, start, end };
+    });
 
-    const chars = text.split("");
-    const resolveAt = chars.map((char, i) =>
-      char === " " ? 0 : WARMUP + i * 82 + Math.random() * 240,
-    );
-    const start = performance.now();
+    frame.current = 0;
 
-    const id = window.setInterval(() => {
-      const elapsed = performance.now() - start;
-      let done = true;
-      const next = chars
-        .map((char, i) => {
-          if (char === " ") return " ";
-          if (elapsed >= resolveAt[i]) return char;
-          done = false;
-          return SCRAMBLE_GLYPHS[
-            Math.floor(Math.random() * SCRAMBLE_GLYPHS.length)
-          ];
-        })
-        .join("");
-      setFrame(next);
-      if (done) window.clearInterval(id);
-    }, 45);
+    const update = () => {
+      let output = "";
+      let complete = 0;
 
-    return () => window.clearInterval(id);
-  }, [animate, text]);
+      for (let i = 0; i < queue.current.length; i++) {
+        const { to, start, end } = queue.current[i];
+
+        if (frame.current >= end) {
+          complete++;
+          output += to;
+        } else if (frame.current >= start) {
+          output += to === " " ? " " : CHARS[Math.floor(Math.random() * CHARS.length)];
+        } else {
+          output += "\u00A0";
+        }
+      }
+
+      setDisplay(output);
+
+      if (complete === queue.current.length) {
+        setDisplay(text);
+        return;
+      }
+
+      frame.current++;
+      rafId.current = requestAnimationFrame(update);
+    };
+
+    rafId.current = requestAnimationFrame(update);
+
+    return () => {
+      if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+    };
+  }, [text]);
 
   return (
-    <h1
-      className={className}
-      data-text={text}
-      data-resolved={resolved}
-      aria-label={text}
-      style={style}
-    >
-      {/* Le contenu animé est masqué aux lecteurs d'écran : ils lisent
-          `aria-label`, jamais la bouillie de glyphes intermédiaire. */}
-      <span aria-hidden="true">{shown}</span>
+    <h1 className={className} style={style} aria-label={text}>
+      {display}
     </h1>
   );
 }
