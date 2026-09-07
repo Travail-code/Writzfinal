@@ -65,7 +65,7 @@ export function ExecutorPanel() {
   };
 
   return (
-    <div className="executor-3d group relative overflow-hidden rounded-md bg-bg shadow-[0_0_0_1px_rgb(255_255_255_/_0.1),0_1px_0_0_rgb(255_255_255_/_0.06)_inset,0_28px_70px_rgb(0_0_0_/_0.5)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:hover:[transform:rotateX(4deg)_rotateY(-6deg)_translateZ(12px)]">
+    <div className="executor-3d-tilt group relative overflow-hidden rounded-md bg-bg shadow-[0_0_0_1px_rgb(255_255_255_/_0.1),0_1px_0_0_rgb(255_255_255_/_0.06)_inset,0_28px_70px_rgb(0_0_0_/_0.5)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]">
       {/* Ligne lumineuse qui balaie la bordure supérieure (pur décor). */}
       <div className="executor-beam" aria-hidden="true" />
 
