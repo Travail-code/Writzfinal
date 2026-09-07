@@ -29,8 +29,6 @@ export function ExecutorPanel() {
   const [tab, setTab] = useState<Tab>("script");
   const [logs, setLogs] = useState<string[]>(["Ready."]);
   const [runId, setRunId] = useState(0);
-  // Incrémenté à chaque changement d'onglet : relance l'animation d'entrée
-  // du contenu (cascade, deblur) sans toucher au texte affiché.
   const [tabTick, setTabTick] = useState(0);
   const loadstringRef = useRef<HTMLSpanElement>(null);
   const { copied, copy } = useCopyToClipboard(1800);
@@ -46,9 +44,6 @@ export function ExecutorPanel() {
     setRunId((n) => n + 1);
 
     if (!ok) {
-      // Toutes les copies programmatiques ont été bloquées (fréquent dans
-      // une iframe sandboxée) : on montre le script, on le sélectionne, et
-      // l'utilisateur fait Ctrl+C.
       switchTab("script");
       window.requestAnimationFrame(() =>
         selectElementContents(loadstringRef.current),
@@ -65,7 +60,7 @@ export function ExecutorPanel() {
   };
 
   return (
-    <div className="executor-3d-tilt group relative overflow-hidden rounded-md bg-bg shadow-[0_0_0_1px_rgb(255_255_255_/_0.1),0_1px_0_0_rgb(255_255_255_/_0.06)_inset,0_28px_70px_rgb(0_0_0_/_0.5)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]">
+    <div className="group relative overflow-hidden rounded-md bg-bg shadow-[0_0_0_1px_rgb(255_255_255_/_0.1),0_1px_0_0_rgb(255_255_255_/_0.06)_inset,0_28px_70px_rgb(0_0_0_/_0.5)] md:hover:shadow-[0_0_0_1px_rgb(255_255_255_/_0.15),0_1px_0_0_rgb(255_255_255_/_0.08)_inset,0_32px_80px_rgb(0_0_0_/_0.55)]">
       {/* Ligne lumineuse qui balaie la bordure supérieure (pur décor). */}
       <div className="executor-beam" aria-hidden="true" />
 
