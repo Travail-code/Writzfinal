@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useInView, usePrefersReducedMotion } from "@/lib/hooks";
 import { Reveal, WordReveal } from "./reveal";
 
 const STATS = [
   { value: 17526, suffix: "+", label: "Users" },
   { value: 158, suffix: "", label: "Scripts" },
-  { value: 1, suffix: "M", label: "execution", decimals: 1 },
+  { value: 1, suffix: "M", label: "Executions", decimals: 1 },
   { value: 12, suffix: "", label: "Executors" },
 ] as const;
 
@@ -26,22 +29,28 @@ function Counter({
   decimals?: number;
   active: boolean;
 }) {
-  const [shown, setShown] = useState(0);
+  const reducedMotion = usePrefersReducedMotion();
+  const [animated, setAnimated] = useState(0);
+
+  // Valeur dérivée : en mouvement réduit on affiche directement le total,
+  // sans passer par un setState dans le corps de l'effet.
+  const shown = !active ? 0 : reducedMotion ? value : animated;
 
   useEffect(() => {
-    if (!active) return;
+    if (!active || reducedMotion) return;
+
     let raf = 0;
     const start = performance.now();
     const duration = 1600;
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - t, 3);
-      setShown(value * eased);
+      setAnimated(value * eased);
       if (t < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [active, value]);
+  }, [active, value, reducedMotion]);
 
   return (
     <span className="font-display tabular-nums text-[clamp(2.2rem,5vw,3.6rem)] font-semibold tracking-tight">
@@ -52,24 +61,7 @@ function Counter({
 }
 
 export function Stats() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setActive(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.35 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+  const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.35, rootMargin: "0px" });
 
   return (
     <section id="stats" className="relative z-10 mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-24">
@@ -89,7 +81,7 @@ export function Stats() {
                 value={stat.value}
                 suffix={stat.suffix}
                 decimals={"decimals" in stat ? stat.decimals : 0}
-                active={active}
+                active={inView}
               />
               <p className="mt-2 text-sm text-muted">{stat.label}</p>
             </div>

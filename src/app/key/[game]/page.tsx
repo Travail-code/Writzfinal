@@ -19,7 +19,7 @@ export async function generateMetadata({
   const { game: slug } = await params;
   const game = getGame(slug);
   return {
-    title: game ? `${game.name} · Keys · Writz Hub` : "Key not found · Writz Hub",
+    title: game ? `${game.name} · Keys` : "Key not found",
     description: game
       ? `Get your Writz Hub key for ${game.name} — ${game.tag}. One key per device, instant delivery, valid 24h.`
       : "This key page does not exist.",

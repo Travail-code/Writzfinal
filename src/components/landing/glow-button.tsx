@@ -1,10 +1,12 @@
 "use client";
 
-import type {
-  AnchorHTMLAttributes,
-  ButtonHTMLAttributes,
-  MouseEvent,
-  ReactNode,
+import {
+  useRef,
+  type AnchorHTMLAttributes,
+  type ButtonHTMLAttributes,
+  type MouseEvent,
+  type PointerEvent,
+  type ReactNode,
 } from "react";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +62,28 @@ export function GlowButton({
   type = "button",
   ...props
 }: GlowButtonProps) {
+  const ref = useRef<HTMLElement | null>(null);
+
+  // Effet « magnétique » : le bouton glisse légèrement vers le curseur
+  // (propriété `translate`, indépendante du transform utilisé par les
+  // effets de scale). Souris uniquement — jamais sur tactile.
+  const handlePointerMove = (e: PointerEvent<HTMLAnchorElement | HTMLButtonElement>) => {
+    const el = ref.current;
+    if (!el || e.pointerType !== "mouse") return;
+    const r = el.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    el.style.setProperty("--mx", `${x}px`);
+    el.style.setProperty("--my", `${y}px`);
+    el.style.translate = `${(x - r.width / 2) * 0.1}px ${(y - r.height / 2) * 0.16}px`;
+  };
+
+  const handlePointerLeave = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.translate = "0px 0px";
+  };
+
   const handleClick = (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     spawnRipple(e.currentTarget, e.clientX, e.clientY);
     onClick?.(e as MouseEvent<HTMLButtonElement>);
@@ -76,9 +100,12 @@ export function GlowButton({
   if (href) {
     return (
       <a
+        ref={ref as unknown as React.Ref<HTMLAnchorElement>}
         href={href}
         className={classes}
         onClick={handleClick}
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
         download={download}
         target={target}
         rel={rel}
@@ -90,7 +117,15 @@ export function GlowButton({
   }
 
   return (
-    <button type={type} className={classes} onClick={handleClick} {...props}>
+    <button
+      ref={ref as unknown as React.Ref<HTMLButtonElement>}
+      type={type}
+      className={classes}
+      onClick={handleClick}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+      {...props}
+    >
       {content}
     </button>
   );
