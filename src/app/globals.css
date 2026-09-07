@@ -235,11 +235,28 @@
   animation: none;
 }
 
+/* Flash final du titre après la résolution du scramble (une seule fois). */
+@keyframes title-settle {
+  0% {
+    text-shadow: 0 0 0 rgb(255 255 255 / 0);
+  }
+  30% {
+    text-shadow: 0 0 34px rgb(255 255 255 / 0.38);
+  }
+  100% {
+    text-shadow: 0 0 0 rgb(255 255 255 / 0);
+  }
+}
+
 /* Title stays always visible — glitch is decorative only on ::before/::after */
 .glitch-title {
   position: relative;
   display: block;
   color: var(--color-fg);
+}
+
+.glitch-title[data-resolved="true"] {
+  animation: title-settle 900ms var(--ease-out-quart) both;
 }
 
 .glitch-title::before,
@@ -328,6 +345,27 @@
   animation: ripple 620ms var(--ease-out-quart) forwards;
 }
 
+/* Halo lumineux qui suit le curseur dans le bouton (--mx/--my posés en
+   JS par GlowButton, combiné avec l'effet magnétique). */
+.btn-ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 260ms var(--ease-out-quart);
+  background: radial-gradient(
+    150px circle at var(--mx, 50%) var(--my, 50%),
+    rgb(255 255 255 / 0.14),
+    transparent 60%
+  );
+}
+
+.btn-ripple:hover::after {
+  opacity: 1;
+}
+
 .noise-overlay {
   pointer-events: none;
   position: fixed;
@@ -374,6 +412,152 @@
 
 .live-blink {
   animation: status-blink 1.6s ease-in-out infinite;
+}
+
+/* ---- Faux exécuteur & maquette : effets visuels ------------------ */
+
+/* Ligne lumineuse qui balaie la bordure supérieure du panneau. */
+@keyframes beam-x {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(520%);
+  }
+}
+
+.executor-beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 22%;
+  height: 1px;
+  background: rgb(255 255 255 / 0.8);
+  box-shadow: 0 0 12px rgb(255 255 255 / 0.4);
+  animation: beam-x 4.2s linear infinite;
+  pointer-events: none;
+}
+
+/* Voile « CRT » par-dessus le contenu : scanlines + vignette. Le texte
+   reste lisible (opacité très faible), c'est purement du grain visuel. */
+.executor-crt {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 2px,
+      rgb(255 255 255 / 0.025) 2px 3px
+    ),
+    radial-gradient(
+      120% 90% at 50% 40%,
+      transparent 55%,
+      rgb(0 0 0 / 0.35) 100%
+    );
+}
+
+/* Les lignes de code se dévoilent en cascade avec un léger deblur à
+   chaque changement d'onglet (le `key` du conteneur relance l'anim). */
+@keyframes code-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.996);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.code-reveal {
+  animation: code-reveal 420ms var(--ease-out-expo) both;
+}
+
+/* Cartes de scripts de la maquette : cascade d'apparition. */
+.mock-script-card {
+  animation: code-reveal 460ms var(--ease-out-expo) both;
+}
+
+/* Halo qui pulse sur le bouton Execute pendant l'injection simulée. */
+@keyframes executing-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.1),
+      0 0 20px rgb(255 255 255 / 0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.24),
+      0 0 44px rgb(255 255 255 / 0.22);
+  }
+}
+
+.executing-glow {
+  animation: executing-pulse 720ms ease-in-out infinite;
+}
+
+/* Reflet qui descend le long de la maquette par-dessus le scan. */
+.hub-beam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 34%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgb(255 255 255 / 0.05),
+    transparent
+  );
+  animation: beam-x 6.5s linear infinite;
+  pointer-events: none;
+}
+
+/* ---- Curseur personnalisé ---------------------------------------- */
+
+.cursor-trail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 999px;
+  background: #fff;
+  mix-blend-mode: exclusion;
+  pointer-events: none;
+  z-index: 79;
+  will-change: transform;
+}
+
+/* ---- Navigation -------------------------------------------------- */
+
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 320ms var(--ease-out-quart);
+}
+
+.nav-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 .custom-cursor-dot,
@@ -424,6 +608,7 @@
   .letter-cascade,
   .glitch-title::before,
   .glitch-title::after,
+  .glitch-title[data-resolved="true"],
   .marquee-track,
   .perspective-floor,
   .hub-scan::after,
@@ -431,15 +616,28 @@
   .bar-run,
   .live-blink,
   .executor-spin,
-  .glow-border {
+  .glow-border,
+  .executor-beam,
+  .hub-beam,
+  .mock-script-card,
+  .code-reveal,
+  .executing-glow,
+  .log-line {
     animation: none !important;
   }
 
   .letter-cascade,
-  .letter-cascade--pending {
+  .letter-cascade--pending,
+  .mock-script-card,
+  .code-reveal {
     opacity: 1;
     transform: none;
     filter: none;
+  }
+
+  /* Sans l'animation, `.log-line` resterait invisible (opacity: 0). */
+  .log-line {
+    opacity: 1;
   }
 
   .marquee-track {

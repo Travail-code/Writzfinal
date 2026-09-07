@@ -66,7 +66,7 @@ export function Nav() {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-[13px] text-muted transition-[color,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-fg"
+                className="nav-link text-[13px] text-muted transition-[color,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-fg"
               >
                 {link.label}
               </a>
@@ -74,7 +74,7 @@ export function Nav() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-[13px] text-muted transition-[color,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-fg"
+                className="nav-link text-[13px] text-muted transition-[color,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-fg"
               >
                 {link.label}
               </Link>

@@ -6,19 +6,40 @@ import { Logo } from "@/components/brand/logo";
 import { selectElementContents, useCopyToClipboard } from "@/lib/clipboard";
 import { LOADSTRING } from "@/lib/site";
 
-type Tab = "editor" | "output";
+type Tab = "script" | "output";
+
+/** Coloration légère du loadstring (aucune vraie syntaxe, juste du rendu). */
+function highlightLua(code: string) {
+  const re = /(loadstring|game:HttpGet|"[^"]*")/g;
+  return code.split(re).map((part, i) => {
+    let cls = "text-faint";
+    if (part === "loadstring") cls = "text-fg";
+    else if (part === "game:HttpGet") cls = "text-muted";
+    else if (part.startsWith('"')) cls = "text-fg/75";
+    return { key: i, text: part, cls };
+  });
+}
 
 /**
  * Faux panneau d'exécuteur de la home : affiche le loadstring, permet de le
- * copier, et simule une console de sortie. Extrait de `hero.tsx` qui faisait
- * 394 lignes.
+ * copier, et simule une sortie console. Pur affichage animé — pas de
+ * console interactive, pas de commandes : uniquement du visuel.
  */
 export function ExecutorPanel() {
-  const [tab, setTab] = useState<Tab>("editor");
+  const [tab, setTab] = useState<Tab>("script");
   const [logs, setLogs] = useState<string[]>(["Ready."]);
   const [runId, setRunId] = useState(0);
+  // Incrémenté à chaque changement d'onglet : relance l'animation d'entrée
+  // du contenu (cascade, deblur) sans toucher au texte affiché.
+  const [tabTick, setTabTick] = useState(0);
   const loadstringRef = useRef<HTMLSpanElement>(null);
   const { copied, copy } = useCopyToClipboard(1800);
+
+  const switchTab = (next: Tab) => {
+    if (next === tab) return;
+    setTab(next);
+    setTabTick((n) => n + 1);
+  };
 
   const handleCopy = async () => {
     const ok = await copy(LOADSTRING);
@@ -28,7 +49,7 @@ export function ExecutorPanel() {
       // Toutes les copies programmatiques ont été bloquées (fréquent dans
       // une iframe sandboxée) : on montre le script, on le sélectionne, et
       // l'utilisateur fait Ctrl+C.
-      setTab("editor");
+      switchTab("script");
       window.requestAnimationFrame(() =>
         selectElementContents(loadstringRef.current),
       );
@@ -39,15 +60,15 @@ export function ExecutorPanel() {
       return;
     }
 
-    setTab("output");
+    switchTab("output");
     setLogs(["Copied to clipboard.", "Paste it into your executor."]);
   };
 
   return (
-    <div
-      className="executor-3d group relative overflow-hidden rounded-md bg-bg shadow-[0_0_0_1px_rgb(255_255_255_/_0.1),0_24px_60px_rgb(0_0_0_/_0.45)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:hover:[transform:rotateX(4deg)_rotateY(-6deg)_translateZ(12px)]"
-      style={{ transformStyle: "preserve-3d" }}
-    >
+    <div className="executor-3d group relative overflow-hidden rounded-md bg-bg shadow-[0_0_0_1px_rgb(255_255_255_/_0.1),0_24px_60px_rgb(0_0_0_/_0.45)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:hover:[transform:rotateX(4deg)_rotateY(-6deg)_translateZ(12px)]">
+      {/* Ligne lumineuse qui balaie la bordure supérieure (pur décor). */}
+      <div className="executor-beam" aria-hidden="true" />
+
       {/* Header */}
       <div className="flex h-10 items-center justify-between gap-2 border-b border-line px-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -64,19 +85,22 @@ export function ExecutorPanel() {
           role="tablist"
           aria-label="Executor panel"
         >
-          <PanelTab active={tab === "editor"} onSelect={() => setTab("editor")}>
+          <PanelTab active={tab === "script"} onSelect={() => switchTab("script")}>
             Script
           </PanelTab>
-          <PanelTab active={tab === "output"} onSelect={() => setTab("output")}>
+          <PanelTab active={tab === "output"} onSelect={() => switchTab("output")}>
             Output
           </PanelTab>
         </div>
       </div>
 
       {/* Body */}
-      <div className="relative min-h-[120px] border-b border-line sm:min-h-[132px]">
-        {tab === "editor" ? (
-          <div className="flex min-h-[120px] sm:min-h-[132px]">
+      <div className="relative min-h-[132px] border-b border-line sm:min-h-[144px]">
+        {/* Voile « CRT » : scanline + vignette, purement décoratif. */}
+        <div className="executor-crt" aria-hidden="true" />
+
+        {tab === "script" ? (
+          <div key={tabTick} className="code-reveal flex min-h-[132px] sm:min-h-[144px]">
             <div
               className="hidden select-none border-r border-line px-2.5 py-3 text-right font-mono text-[11px] leading-6 text-faint/60 sm:block"
               aria-hidden="true"
@@ -89,7 +113,11 @@ export function ExecutorPanel() {
                 ref={loadstringRef}
                 className="select-all break-all sm:break-normal"
               >
-                {LOADSTRING}
+                {highlightLua(LOADSTRING).map((part) => (
+                  <span key={part.key} className={part.cls}>
+                    {part.text}
+                  </span>
+                ))}
               </span>
               <span
                 className="ml-0.5 inline-block h-[1em] w-[2px] translate-y-[2px] animate-pulse bg-fg align-text-bottom"
@@ -99,7 +127,8 @@ export function ExecutorPanel() {
           </div>
         ) : (
           <div
-            className="min-h-[120px] space-y-1 px-3 py-3 font-mono text-[11px] leading-5 text-muted sm:min-h-[132px] sm:px-4"
+            key={tabTick}
+            className="min-h-[132px] space-y-1 px-3 py-3 font-mono text-[11px] leading-5 text-muted sm:min-h-[144px] sm:px-4"
             role="status"
             aria-live="polite"
           >
@@ -107,11 +136,18 @@ export function ExecutorPanel() {
               <div
                 key={`${runId}-${line}-${i}`}
                 className={`log-line ${i === logs.length - 1 ? "text-fg" : ""}`}
-                style={{ animationDelay: `${i * 90}ms` }}
+                style={{ animationDelay: `${i * 120}ms` }}
               >
                 {line}
               </div>
             ))}
+            <div
+              className="log-line inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-faint"
+              style={{ animationDelay: `${logs.length * 120 + 120}ms` }}
+            >
+              <span className="status-pulse size-1 rounded-full bg-fg" aria-hidden="true" />
+              idle · v1.2
+            </div>
           </div>
         )}
       </div>
@@ -145,7 +181,7 @@ export function ExecutorPanel() {
           onClick={() => {
             setRunId((n) => n + 1);
             setLogs(["Cleared."]);
-            setTab("output");
+            switchTab("output");
           }}
           className="inline-flex h-9 items-center gap-2 rounded-full px-4 text-[12px] font-medium text-muted shadow-[0_0_0_1px_rgb(255_255_255_/_0.12)] transition duration-200 hover:text-fg active:scale-[0.96]"
         >
@@ -168,7 +204,7 @@ export function ExecutorPanel() {
           <span className="status-pulse size-1 rounded-full bg-fg" aria-hidden="true" />
           keyless
         </span>
-        <span className="truncate">Xeno · Solara · Delta · Wave</span>
+        <span className="hidden truncate sm:inline">Xeno · Solara · Delta · Wave</span>
       </div>
     </div>
   );

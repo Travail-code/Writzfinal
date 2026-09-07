@@ -12,6 +12,13 @@ type Particle = {
   a: number;
 };
 
+const LINK_DISTANCE = 110;
+
+/**
+ * Fond animé : grille perspective, particules qui dérivent et se relient
+ * en constellation, halo qui suit la souris avec inertie. Désactivé en
+ * mouvement réduit et sur mobile (sauf halo statique).
+ */
 export function AmbientBg() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
@@ -38,14 +45,16 @@ export function AmbientBg() {
     if (!ctx) return;
 
     const mouse = { x: -9999, y: -9999 };
+    // Le halo ne saute plus d'un pixel : il est lissé dans la boucle.
+    const glow = { x: window.innerWidth / 2, y: window.innerHeight * 0.3 };
     let particles: Particle[] = [];
     let raf = 0;
     let running = true;
 
     const countForWidth = () => {
-      if (window.innerWidth < 640) return 28;
-      if (window.innerWidth < 1024) return 48;
-      return 72;
+      if (window.innerWidth < 640) return 26;
+      if (window.innerWidth < 1024) return 44;
+      return 68;
     };
 
     const spawn = () => {
@@ -81,6 +90,11 @@ export function AmbientBg() {
       const h = window.innerHeight;
       ctx.clearRect(0, 0, w, h);
 
+      // Halo suiveur lissé (légère traînée derrière le curseur).
+      glow.x += (mouse.x - glow.x) * 0.09;
+      glow.y += (mouse.y - glow.y) * 0.09;
+
+      // 1) Physique des particules.
       for (const p of particles) {
         const dx = p.x - mouse.x;
         const dy = p.y - mouse.y;
@@ -98,11 +112,36 @@ export function AmbientBg() {
         if (p.x > w) p.x = 0;
         if (p.y < 0) p.y = h;
         if (p.y > h) p.y = 0;
+      }
 
+      // 2) Liens de constellation entre particules proches.
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const a = particles[i];
+          const b = particles[j];
+          const d = Math.hypot(a.x - b.x, a.y - b.y);
+          if (d > LINK_DISTANCE) continue;
+          const alpha = (1 - d / LINK_DISTANCE) * 0.1;
+          ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+
+      // 3) Les particules elles-mêmes.
+      for (const p of particles) {
         ctx.beginPath();
         ctx.fillStyle = `rgba(255,255,255,${p.a})`;
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
+      }
+
+      if (glowRef.current) {
+        glowRef.current.style.setProperty("--mx", `${glow.x}px`);
+        glowRef.current.style.setProperty("--my", `${glow.y}px`);
       }
 
       raf = requestAnimationFrame(tick);

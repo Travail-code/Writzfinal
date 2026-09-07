@@ -20,13 +20,20 @@ const SCRIPTS = [
 // désormais la maquette à jour toute seule.
 const NAV = ["Home", "Universal", ...GAMES.slice(0, 3).map((game) => game.name)];
 
+/**
+ * Maquette animée du hub en jeu : navigation, cartes de scripts et
+ * bouton « Execute ». Aucune interaction lourde — uniquement du visuel
+ * (cascade d'apparition, balayage lumineux, pulsation « executing »).
+ */
 export function HubMockup() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const richMotion = useRichMotion();
   const [activeNav, setActiveNav] = useState("Universal");
   const [running, setRunning] = useState("Auto Farm");
+  const [executing, setExecuting] = useState<string | null>(null);
 
+  // Parallaxe verticale en fonction du scroll (desktop uniquement).
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap || !richMotion) return;
@@ -41,6 +48,13 @@ export function HubMockup() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [richMotion]);
+
+  // Pulsation « executing » sur le bouton, puis retour à l'état prêt.
+  useEffect(() => {
+    if (!executing) return;
+    const id = window.setTimeout(() => setExecuting(null), 1600);
+    return () => window.clearTimeout(id);
+  }, [executing]);
 
   const onMove = (e: MouseEvent<HTMLDivElement>) => {
     const inner = innerRef.current;
@@ -72,6 +86,9 @@ export function HubMockup() {
         className="glass-strong hub-scan relative overflow-hidden rounded-xl transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
         style={{ transformStyle: "preserve-3d" }}
       >
+        {/* Balayage vertical de bordure (décoratif). */}
+        <div className="hub-beam" aria-hidden="true" />
+
         <div className="flex items-center gap-2 border-b border-line px-4 py-3">
           <span className="size-2.5 rounded-full bg-fg/25" />
           <span className="size-2.5 rounded-full bg-fg/18" />
@@ -114,17 +131,18 @@ export function HubMockup() {
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {SCRIPTS.map((script) => {
+              {SCRIPTS.map((script, i) => {
                 const on = running === script.name;
                 return (
                   <button
                     key={script.name}
                     type="button"
                     onClick={() => setRunning(script.name)}
+                    style={{ animationDelay: `${i * 70}ms` }}
                     className={cn(
-                      "rounded-md p-3 text-left transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98]",
+                      "mock-script-card rounded-md p-3 text-left transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98]",
                       on
-                        ? "bg-fg/10 shadow-[0_0_0_1px_rgb(255_255_255_/_0.2)]"
+                        ? "bg-fg/10 shadow-[0_0_0_1px_rgb(255_255_255_/_0.2),0_0_24px_rgb(255_255_255_/_0.06)]"
                         : "bg-fg/5 shadow-[0_0_0_1px_rgb(255_255_255_/_0.07)] hover:bg-fg/10",
                     )}
                   >
@@ -145,17 +163,26 @@ export function HubMockup() {
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
                 type="button"
-                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-fg px-4 text-sm font-medium text-accent-fg transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:shadow-[0_0_28px_rgb(255_255_255_/_0.18)] active:scale-[0.96]"
+                onClick={() => {
+                  setRunning(executing ?? running);
+                  setExecuting(executing ?? running);
+                }}
+                className={cn(
+                  "inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-fg px-4 text-sm font-medium text-accent-fg transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:shadow-[0_0_28px_rgb(255_255_255_/_0.18)] active:scale-[0.96]",
+                  executing && "executing-glow",
+                )}
               >
                 <Play className="size-3.5" />
-                Execute {running}
+                {executing ? "Executing…" : `Execute ${running}`}
               </button>
               <div className="flex-1">
                 <div className="h-1.5 overflow-hidden rounded-full bg-fg/10">
                   <div className="bar-run h-full rounded-full bg-fg/80" />
                 </div>
                 <p className="mt-1.5 font-mono text-[10px] text-faint">
-                  injecting · {running.toLowerCase().replace(" ", "_")}.lua
+                  {executing
+                    ? `injecting · ${running.toLowerCase().replace(" ", "_")}.lua`
+                    : `ready · ${running.toLowerCase().replace(" ", "_")}.lua`}
                 </p>
               </div>
             </div>
