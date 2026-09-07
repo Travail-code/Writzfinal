@@ -14,7 +14,7 @@ export function selectElementContents(el: Element | null) {
   selection?.addRange(range);
 }
 
-/** Copie via textarea hors écran + execCommand (fonctionne même sans focus document strict). */
+/** Copie via textarea hors écran + execCommand (fallback fiable). */
 function copyViaExecCommand(text: string): boolean {
   try {
     const area = document.createElement("textarea");
@@ -47,8 +47,7 @@ function copyViaExecCommand(text: string): boolean {
  *  3. échec → l'appelant sélectionne le texte pour un Ctrl+C manuel
  *
  * Le focus du document est vérifié avant d'appeler la Clipboard API :
- * Chrome throw silencieusement "Document is not focused" sinon, ce qui
- * causait le besoin de cliquer plusieurs fois avant que ça fonctionne.
+ * Chrome throw silencieusement "Document is not focused" sinon.
  */
 export function useCopyToClipboard(resetAfterMs = 2000) {
   const [state, setState] = useState<CopyState>("idle");
