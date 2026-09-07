@@ -600,17 +600,7 @@
   border-color: rgb(255 255 255 / 0.7);
 }
 
-/* ---- Executor panel : tilt 3D au survol --------------------------
-   Restreint à `hover: hover` + `pointer: fine` (vraie souris) : sur
-   tactile, le navigateur simule le hover au premier tap avant de
-   déclencher le vrai `click`, ce qui forçait à taper deux fois sur le
-   bouton Copy pour qu'il fonctionne. En excluant le tactile ici, le
-   premier tap déclenche directement le click. */
-@media (hover: hover) and (pointer: fine) {
-  .executor-3d-tilt:hover {
-    transform: rotateX(4deg) rotateY(-6deg) translateZ(12px);
-  }
-}
+
 
 @media (prefers-reduced-motion: reduce) {
   html {
