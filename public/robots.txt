@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://writzhub.example.com/sitemap.xml
+Sitemap: https://writzzzzzz.vercel.app/sitemap.xml

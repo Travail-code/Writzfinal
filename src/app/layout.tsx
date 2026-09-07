@@ -7,6 +7,7 @@ const APP_DESCRIPTION =
   "Writz Hub — premium script hub for Roblox. Compatible with Xeno, Solara, Delta and more.";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://writzzzzzz.vercel.app"),
   title: APP_NAME,
   description: APP_DESCRIPTION,
   icons: {
