@@ -38,8 +38,14 @@ const securityHeaders = [
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   {
     key: "Permissions-Policy",
+    // clipboard-write=(self) est indispensable : sans elle, Chrome
+    // désactive l'API navigator.clipboard.writeText sur la page, ce qui
+    // forçait le fallback execCommand à chaque fois (comportement
+    // inconsistant type "il faut cliquer plusieurs fois").
+    // interest-cohort retiré : obsolète (FLoC), plus reconnu par aucun
+    // navigateur moderne, ne fait que produire un warning en console.
     value:
-      "camera=(), geolocation=(), microphone=(), payment=(), usb=(), interest-cohort=()",
+      "camera=(), geolocation=(), microphone=(), payment=(), usb=(), clipboard-write=(self), clipboard-read=(self)",
   },
   {
     key: "Strict-Transport-Security",
