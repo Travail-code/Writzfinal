@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export type CopyState = "idle" | "copied" | "blocked";
 
-/** Sélectionne le contenu d'un élément pour permettre un Ctrl+C manuel. */
 export function selectElementContents(el: Element | null) {
   if (!el) return;
   const range = document.createRange();
@@ -14,16 +13,6 @@ export function selectElementContents(el: Element | null) {
   selection?.addRange(range);
 }
 
-/**
- * Copie dans le presse-papier avec une cascade de secours :
- *
- *  1. `navigator.clipboard.writeText` (contexte sécurisé + permission)
- *  2. `document.execCommand("copy")` via un textarea hors écran
- *  3. échec → l'appelant sélectionne le texte pour un Ctrl+C manuel
- *
- * Cette logique était dupliquée à l'identique dans `hero.tsx` et
- * `loadstring-mini.tsx` ; elle vit désormais à un seul endroit.
- */
 export function useCopyToClipboard(resetAfterMs = 2000) {
   const [state, setState] = useState<CopyState>("idle");
   const timer = useRef<number | undefined>(undefined);
@@ -32,6 +21,12 @@ export function useCopyToClipboard(resetAfterMs = 2000) {
 
   const copy = useCallback(
     async (text: string) => {
+      if (!text) {
+        console.error("useCopyToClipboard: texte vide ou undefined reçu.");
+        setState("blocked");
+        return false;
+      }
+
       let ok = false;
 
       try {
@@ -39,7 +34,8 @@ export function useCopyToClipboard(resetAfterMs = 2000) {
           await navigator.clipboard.writeText(text);
           ok = true;
         }
-      } catch {
+      } catch (err) {
+        console.warn("clipboard.writeText a échoué, fallback execCommand:", err);
         ok = false;
       }
 
@@ -48,13 +44,21 @@ export function useCopyToClipboard(resetAfterMs = 2000) {
           const area = document.createElement("textarea");
           area.value = text;
           area.setAttribute("readonly", "");
+          area.contentEditable = "true";
           area.style.position = "fixed";
+          area.style.top = "0";
           area.style.left = "-9999px";
+          area.style.fontSize = "16px"; // évite le zoom auto sur iOS
           document.body.appendChild(area);
+
+          area.focus();
           area.select();
+          area.setSelectionRange(0, area.value.length); // requis sur iOS
+
           ok = document.execCommand("copy");
-          area.remove();
-        } catch {
+          document.body.removeChild(area);
+        } catch (err) {
+          console.warn("execCommand fallback a échoué:", err);
           ok = false;
         }
       }
