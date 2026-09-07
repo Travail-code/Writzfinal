@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import { GAMES } from "@/lib/games";
 
-// Base URL of the deployed site — update if you host it elsewhere.
-const BASE_URL = "https://writzhub.example.com";
+// Official domain of the deployed site.
+const BASE_URL = "https://writzzzzzz.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
