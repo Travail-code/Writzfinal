@@ -1,0 +1,429 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0a0a0a;
+  --color-bg-2: #111111;
+  --color-surface: #161616;
+  --color-fg: #f4f4f5;
+  --color-muted: #a1a1aa;
+  --color-faint: #71717a;
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-line-strong: rgb(255 255 255 / 0.16);
+  --color-accent: #f4f4f5;
+  --color-accent-fg: #0a0a0a;
+  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-quart: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-fg);
+    min-height: 100svh;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: rgb(255 255 255 / 0.16);
+    color: var(--color-fg);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html.has-custom-cursor,
+  html.has-custom-cursor * {
+    cursor: none !important;
+  }
+}
+
+@property --border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes border-spin {
+  to {
+    --border-angle: 360deg;
+  }
+}
+
+@keyframes letter-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.1em) rotateX(-50deg);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0);
+    filter: blur(0);
+  }
+}
+
+/* Glitch only on pseudo-elements — never on the real title text */
+@keyframes glitch-flicker {
+  0%,
+  86%,
+  100% {
+    transform: none;
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+  }
+  88% {
+    transform: translate(-2px, 1px);
+    clip-path: inset(12% 0 68% 0);
+    opacity: 0.7;
+  }
+  90% {
+    transform: translate(2px, -1px);
+    clip-path: inset(62% 0 8% 0);
+    opacity: 0.8;
+  }
+  92% {
+    transform: translate(-1px, 0);
+    clip-path: inset(0 0 0 0);
+    opacity: 0;
+  }
+  94% {
+    transform: translate(1px, 1px);
+    clip-path: inset(40% 0 30% 0);
+    opacity: 0.65;
+  }
+}
+
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.75);
+  }
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(26);
+    opacity: 0;
+  }
+}
+
+@keyframes grid-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 56px 56px;
+  }
+}
+
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes bar-fill {
+  from {
+    width: 8%;
+  }
+  to {
+    width: 72%;
+  }
+}
+
+@keyframes status-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Letters start hidden only while waiting for mount, then animate in and stay visible */
+.letter-cascade {
+  display: inline-block;
+  opacity: 1;
+  animation: letter-in 720ms var(--ease-out-expo) both;
+  transform-origin: bottom center;
+}
+
+.letter-cascade--pending {
+  opacity: 0;
+  animation: none;
+}
+
+/* Title stays always visible — glitch is decorative only on ::before/::after */
+.glitch-title {
+  position: relative;
+  display: block;
+  color: var(--color-fg);
+}
+
+.glitch-title::before,
+.glitch-title::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.glitch-title::before {
+  color: rgb(255 255 255 / 0.45);
+  animation: glitch-flicker 7s steps(2, end) infinite;
+  animation-delay: 40ms;
+}
+
+.glitch-title::after {
+  color: rgb(255 255 255 / 0.25);
+  animation: glitch-flicker 7s steps(2, end) infinite;
+  animation-delay: 80ms;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-x 38s linear infinite;
+  will-change: transform;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.glass {
+  background: rgb(255 255 255 / 0.03);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+
+.glass-strong {
+  background: rgb(12 12 12 / 0.72);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.1),
+    0 24px 60px rgb(0 0 0 / 0.45);
+}
+
+.glow-border {
+  background:
+    linear-gradient(var(--color-bg-2), var(--color-bg-2)) padding-box,
+    conic-gradient(
+        from var(--border-angle),
+        rgb(255 255 255 / 0) 0%,
+        rgb(255 255 255 / 0) 35%,
+        rgb(255 255 255 / 0.85) 50%,
+        rgb(255 255 255 / 0) 65%,
+        rgb(255 255 255 / 0) 100%
+      )
+      border-box;
+  border: 1px solid transparent;
+  animation: border-spin 3.6s linear infinite;
+}
+
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.btn-ripple .ripple {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.35);
+  pointer-events: none;
+  animation: ripple 620ms var(--ease-out-quart) forwards;
+}
+
+.noise-overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.perspective-floor {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  transform: perspective(700px) rotateX(58deg) scale(1.4);
+  transform-origin: center top;
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.55), transparent 78%);
+  animation: grid-drift 28s linear infinite;
+}
+
+.hub-scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgb(255 255 255 / 0.04),
+    transparent
+  );
+  animation: scan 5.5s linear infinite;
+  opacity: 0.5;
+}
+
+.status-pulse {
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+
+.bar-run {
+  animation: bar-fill 2.4s var(--ease-out-expo) infinite alternate;
+}
+
+.live-blink {
+  animation: status-blink 1.6s ease-in-out infinite;
+}
+
+.custom-cursor-dot,
+.custom-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 80;
+  border-radius: 999px;
+  will-change: transform;
+}
+
+.custom-cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: #fff;
+  mix-blend-mode: exclusion;
+}
+
+.custom-cursor-ring {
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  border: 1px solid rgb(255 255 255 / 0.45);
+  transition:
+    width 180ms var(--ease-out-quart),
+    height 180ms var(--ease-out-quart),
+    margin 180ms var(--ease-out-quart),
+    background-color 180ms var(--ease-out-quart),
+    border-color 180ms var(--ease-out-quart);
+}
+
+.custom-cursor-ring.is-hover {
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  background: rgb(255 255 255 / 0.06);
+  border-color: rgb(255 255 255 / 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .letter-cascade,
+  .glitch-title::before,
+  .glitch-title::after,
+  .marquee-track,
+  .perspective-floor,
+  .hub-scan::after,
+  .status-pulse,
+  .bar-run,
+  .live-blink,
+  .glow-border {
+    animation: none !important;
+  }
+
+  .letter-cascade,
+  .letter-cascade--pending {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  .marquee-track {
+    animation: none;
+  }
+}
+
+/* Mobile: keep the page alive but drop the GPU-heavy animations
+   (perspective grid drift, scan line, glitch layers) and slow the marquee
+   down instead of freezing it. */
+@media (max-width: 768px) {
+  .perspective-floor,
+  .hub-scan::after,
+  .glitch-title::before,
+  .glitch-title::after {
+    animation: none !important;
+  }
+
+  .marquee-track {
+    animation-duration: 72s;
+  }
+}
