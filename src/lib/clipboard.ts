@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export type CopyState = "idle" | "copied" | "blocked";
 
+/** Sélectionne le contenu d'un élément pour permettre un Ctrl+C manuel. */
 export function selectElementContents(el: Element | null) {
   if (!el) return;
   const range = document.createRange();
@@ -13,7 +14,7 @@ export function selectElementContents(el: Element | null) {
   selection?.addRange(range);
 }
 
-/** Copie via textarea hors écran + execCommand (fonctionne même sans focus document). */
+/** Copie via textarea hors écran + execCommand (fonctionne même sans focus document strict). */
 function copyViaExecCommand(text: string): boolean {
   try {
     const area = document.createElement("textarea");
@@ -32,11 +33,23 @@ function copyViaExecCommand(text: string): boolean {
     const ok = document.execCommand("copy");
     document.body.removeChild(area);
     return ok;
-  } catch {
+  } catch (err) {
+    console.warn("copyViaExecCommand a échoué:", err);
     return false;
   }
 }
 
+/**
+ * Copie dans le presse-papier avec une cascade de secours :
+ *
+ *  1. `navigator.clipboard.writeText` (contexte sécurisé + focus + permission)
+ *  2. `document.execCommand("copy")` via un textarea hors écran
+ *  3. échec → l'appelant sélectionne le texte pour un Ctrl+C manuel
+ *
+ * Le focus du document est vérifié avant d'appeler la Clipboard API :
+ * Chrome throw silencieusement "Document is not focused" sinon, ce qui
+ * causait le besoin de cliquer plusieurs fois avant que ça fonctionne.
+ */
 export function useCopyToClipboard(resetAfterMs = 2000) {
   const [state, setState] = useState<CopyState>("idle");
   const timer = useRef<number | undefined>(undefined);
@@ -46,28 +59,23 @@ export function useCopyToClipboard(resetAfterMs = 2000) {
   const copy = useCallback(
     async (text: string) => {
       if (!text) {
-        console.error("useCopyToClipboard: texte vide reçu.");
+        console.error("useCopyToClipboard: texte vide ou undefined reçu.");
         setState("blocked");
         return false;
       }
 
-      // S'assure que la fenêtre a le focus AVANT de tenter la Clipboard API.
-      // Sans ça, Chrome throw "Document is not focused" silencieusement.
-      if (typeof window !== "undefined" && !document.hasFocus()) {
+      if (!document.hasFocus()) {
         window.focus();
       }
 
       let ok = false;
 
-      // Si le document n'a toujours pas le focus, on saute direct au
-      // fallback execCommand (plus tolérant, se base sur l'élément focus
-      // qu'on crée nous-mêmes) au lieu de perdre un cycle sur writeText.
       if (document.hasFocus() && navigator.clipboard?.writeText) {
         try {
           await navigator.clipboard.writeText(text);
           ok = true;
         } catch (err) {
-          console.warn("clipboard.writeText a échoué:", err);
+          console.warn("clipboard.writeText a échoué, fallback execCommand:", err);
           ok = false;
         }
       }
