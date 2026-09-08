@@ -602,7 +602,7 @@
 
 
 
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) or (max-width: 768px) {
   html {
     scroll-behavior: auto;
   }
@@ -648,7 +648,7 @@
 }
 
 /* Mobile: keep the page alive but drop the GPU-heavy animations
-   (perspective grid drift, scan line, glitch layers) and slow the marquee
+   (perspective grid drift, scan line, glitch layers, particles) and slow the marquee
    down instead of freezing it. */
 @media (max-width: 768px) {
   .perspective-floor,
@@ -660,6 +660,12 @@
 
   .marquee-track {
     animation-duration: 72s;
+  }
+
+  /* Désactive les animations de cartes sur mobile */
+  .game-card {
+    transform: none !important;
+    transition: none !important;
   }
 }
 
@@ -954,5 +960,15 @@
   .keys-hero-ring {
     inset: -12px;
     border-radius: 36px;
+  }
+
+  /* Optimisations mobile */
+  html {
+    scroll-behavior: auto;
+  }
+
+  .perspective-floor,
+  .hub-scan::after {
+    animation: none !important;
   }
 }

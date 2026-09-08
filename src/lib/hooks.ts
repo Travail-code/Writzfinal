@@ -82,6 +82,13 @@ export function useIsMobile() {
 }
 
 /**
+ * Détecte les écrans tactiles (smartphones, tablettes).
+ */
+export function useIsTouchDevice() {
+  return useMediaQuery("(hover: none) and (pointer: coarse)");
+}
+
+/**
  * `true` quand les animations décoratives sont pertinentes :
  * pointeur précis, mouvement autorisé, viewport desktop.
  */
@@ -89,7 +96,10 @@ export function useRichMotion() {
   const fine = useFinePointer();
   const reduced = usePrefersReducedMotion();
   const isMobile = useIsMobile();
-  return fine && !reduced && !isMobile;
+  const isTouch = useIsTouchDevice();
+  
+  // Désactive les animations lourdes sur mobile et écrans tactiles pour les performances
+  return fine && !reduced && !isMobile && !isTouch;
 }
 
 /* ------------------------------------------------------------------ */

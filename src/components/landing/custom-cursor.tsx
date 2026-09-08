@@ -18,7 +18,7 @@ function lerpFactor(base: number, dt: number) {
  * survol des éléments interactifs, et traînée de particules qui suit
  * avec un léger retard. Le point se contracte légèrement au clic, et
  * l'ensemble s'estompe proprement quand le pointeur quitte la fenêtre.
- * Rien n'est rendu sur mobile / pointeur tactile.
+ * Désactivé sur mobile et écrans tactiles pour les performances.
  */
 export function CustomCursor() {
   const richMotion = useRichMotion();

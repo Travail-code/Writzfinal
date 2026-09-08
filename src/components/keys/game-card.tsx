@@ -5,7 +5,7 @@ import { useRef, type CSSProperties, type MouseEvent } from "react";
 import { ArrowUpRight } from "lucide-react";
 import type { Game } from "@/lib/games";
 import { accentFor, featuresFromTag, initialsFor } from "@/lib/game-style";
-import { useRichMotion } from "@/lib/hooks";
+import { useRichMotion, useIsMobile } from "@/lib/hooks";
 
 export function GameCard({
   game,
@@ -22,6 +22,7 @@ export function GameCard({
   const Heading = headingLevel;
   const ref = useRef<HTMLAnchorElement>(null);
   const tiltEnabled = useRichMotion();
+  const isMobile = useIsMobile();
   const accent = accentFor(game.slug);
   const features = featuresFromTag(game.tag);
 
@@ -31,7 +32,8 @@ export function GameCard({
     const rect = el.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
-    el.style.transform = `perspective(700px) rotateX(${-y * 6}deg) rotateY(${x * 8}deg) translateY(-3px)`;
+    // Effet 3D atténué sur mobile pour les performances
+    el.style.transform = `perspective(700px) rotateX(${-y * (isMobile ? 3 : 6)}deg) rotateY(${x * (isMobile ? 4 : 8)}deg) translateY(-${isMobile ? '1' : '3'}px)`;
   };
 
   const onLeave = () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useFinePointer, usePrefersReducedMotion, useIsMobile } from "@/lib/hooks";
+import { useFinePointer, usePrefersReducedMotion, useIsMobile, useIsTouchDevice } from "@/lib/hooks";
 
 type Particle = {
   x: number;
@@ -17,7 +17,7 @@ const LINK_DISTANCE = 110;
 /**
  * Fond animé : grille perspective, particules qui dérivent et se relient
  * en constellation, halo qui suit la souris avec inertie. Désactivé en
- * mouvement réduit et sur mobile (sauf halo statique).
+ * mouvement réduit, sur mobile et écrans tactiles pour les performances.
  */
 export function AmbientBg() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -25,21 +25,22 @@ export function AmbientBg() {
   const reduced = usePrefersReducedMotion();
   const fine = useFinePointer();
   const isMobile = useIsMobile();
+  const isTouch = useIsTouchDevice();
 
   useEffect(() => {
     const glow = glowRef.current;
-    if (!glow || !fine || isMobile) return;
+    if (!glow || !fine || isMobile || isTouch) return;
     const onMove = (e: PointerEvent) => {
       glow.style.setProperty("--mx", `${e.clientX}px`);
       glow.style.setProperty("--my", `${e.clientY}px`);
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     return () => window.removeEventListener("pointermove", onMove);
-  }, [fine, isMobile]);
+  }, [fine, isMobile, isTouch]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || reduced || isMobile) return;
+    if (!canvas || reduced || isMobile || isTouch) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -166,7 +167,7 @@ export function AmbientBg() {
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [reduced, isMobile]);
+  }, [reduced, isMobile, isTouch]);
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">

@@ -60,13 +60,13 @@ export function Nav() {
           <Wordmark />
         </a>
 
-        <nav className="hidden items-center gap-8 md:flex" aria-label="Main">
+        <nav className="hidden items-center gap-4 sm:gap-8 md:flex" aria-label="Main">
           {LINKS.map((link) =>
             link.href.startsWith("#") ? (
               <a
                 key={link.href}
                 href={link.href}
-                className="nav-link text-[13px] text-muted transition-[color,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-fg"
+                className="nav-link text-[12px] sm:text-[13px] text-muted transition-[color,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-fg"
               >
                 {link.label}
               </a>
@@ -74,7 +74,7 @@ export function Nav() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="nav-link text-[13px] text-muted transition-[color,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-fg"
+                className="nav-link text-[12px] sm:text-[13px] text-muted transition-[color,opacity] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-fg"
               >
                 {link.label}
               </Link>
@@ -82,8 +82,8 @@ export function Nav() {
           )}
         </nav>
 
-        <div className="hidden md:block">
-          <GlowButton href="#download" className="min-h-10 px-5 py-2 text-[13px]">
+        <div className="hidden sm:block">
+          <GlowButton href="#download" className="min-h-10 px-4 py-2 text-[12px] sm:px-5 sm:text-[13px]">
             Copy script
           </GlowButton>
         </div>
@@ -91,13 +91,13 @@ export function Nav() {
         <button
           ref={toggleRef}
           type="button"
-          className="grid size-11 place-items-center rounded-full text-fg shadow-[0_0_0_1px_rgb(255_255_255_/_0.16)] md:hidden"
+          className="grid size-10 place-items-center rounded-full text-fg shadow-[0_0_0_1px_rgb(255_255_255_/_0.16)] sm:size-11 md:hidden"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           aria-controls="mobile-menu"
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? <X className="size-5" /> : <Menu className="size-5" />}
+          {open ? <X className="size-4 sm:size-5" /> : <Menu className="size-4 sm:size-5" />}
         </button>
       </div>
 
@@ -113,14 +113,14 @@ export function Nav() {
           open ? "visible opacity-100" : "invisible opacity-0",
         )}
       >
-        <nav className="flex h-full flex-col items-center justify-center gap-8" aria-label="Mobile">
+        <nav className="flex h-full flex-col items-center justify-center gap-6" aria-label="Mobile">
           {LINKS.map((link) =>
             link.href.startsWith("#") ? (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="font-display text-3xl font-semibold tracking-tight"
+                className="font-display text-2xl sm:text-3xl font-semibold tracking-tight"
               >
                 {link.label}
               </a>
@@ -129,13 +129,13 @@ export function Nav() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="font-display text-3xl font-semibold tracking-tight"
+                className="font-display text-2xl sm:text-3xl font-semibold tracking-tight"
               >
                 {link.label}
               </Link>
             ),
           )}
-          <GlowButton href="#download" onClick={() => setOpen(false)}>
+          <GlowButton href="#download" onClick={() => setOpen(false)} className="text-[14px] sm:text-[15px]">
             Copy script
           </GlowButton>
         </nav>
